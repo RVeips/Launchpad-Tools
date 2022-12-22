@@ -1,0 +1,3 @@
+[submodule "LaunchpadTools/vendor/spdlog"]
+	path = LaunchpadTools/vendor/spdlog
+	url = https://github.com/CFXS/spdlog/
