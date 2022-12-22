@@ -9,14 +9,14 @@ BEGIN
         BLOCK "040904E4"
         BEGIN
             VALUE "CompanyName",        "CFXS"
-            VALUE "FileDescription",    "CFXS L0 ARM Debugger"
+            VALUE "FileDescription",    "CFXS Launchpad Tools"
             VALUE "FileVersion",        "1.0-dev"
-            VALUE "InternalName",       "CFXS L0 ARM Debugger"
+            VALUE "InternalName",       "CFXS Launchpad Tools"
             VALUE "LegalCopyright",     "Copyright \xA9 2022 CFXS"
             VALUE "LegalTrademarks1",   "All Rights Reserved"
             VALUE "LegalTrademarks2",   "All Rights Reserved"
-            VALUE "OriginalFilename",   "CFXS L0 ARM Debugger.exe"
-            VALUE "ProductName",        "CFXS L0 ARM Debugger"
+            VALUE "OriginalFilename",   "CFXS Launchpad Tools.exe"
+            VALUE "ProductName",        "CFXS Launchpad Tools"
             VALUE "ProductVersion",     "1.0-dev"
         END
     END

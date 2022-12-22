@@ -1,0 +1,11 @@
+[20:32:44.854] L0:      Initialize ChromeDriver
+[20:32:44.855] L0:      Initialize MIDI Driver
+[20:32:44.915] L0:      MIDI input devices:
+[20:32:44.919] L0:       - [0] LPX MIDI
+[20:32:44.919] L0:       - [1] MIDIIN2 (LPX MIDI)
+[20:32:44.919] L0:      MIDI output devices:
+[20:32:44.919] L0:       - [0] Microsoft GS Wavetable Synth
+[20:32:44.920] L0:       - [1] LPX MIDI
+[20:32:44.920] L0:       - [2] MIDIOUT2 (LPX MIDI)
+[20:32:44.920] L0:      MIDI Driver initialized
+[20:32:45.143] L0:      Open Window

@@ -10,7 +10,7 @@ include("_Sources.cmake")
 
 add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
 
-add_compile_definitions("CFXS_VERSION_STRING=\"v0.1-dev\"")
+add_compile_definitions("CFXS_VERSION_STRING=\"v1.0-dev\"")
 add_compile_definitions("CFXS_PROGRAM_NAME=\"CFXS Launchpad Tools\"")
 
 set(CMAKE_AUTOMOC ON)
@@ -127,6 +127,7 @@ add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E cop
 add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${QT_CMAKE_PATH}\\..\\..\\bin\\QtWebEngineProcessd.exe $<TARGET_FILE_DIR:${EXE_NAME}>)
 
 add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${QT_CMAKE_PATH}\\..\\..\\resources\\ $<TARGET_FILE_DIR:${EXE_NAME}>\\resources\\)
+add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}\\interface\\ $<TARGET_FILE_DIR:${EXE_NAME}>\\ui\\)
 
 add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${QT_CMAKE_PATH}\\..\\..\\plugins\\platforms\\qwindows.dll $<TARGET_FILE_DIR:${EXE_NAME}>\\platforms\\qwindows.dll)
 add_custom_command(TARGET ${EXE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${QT_CMAKE_PATH}\\..\\..\\plugins\\platforms\\qwindowsd.dll $<TARGET_FILE_DIR:${EXE_NAME}>\\platforms\\qwindowsd.dll)

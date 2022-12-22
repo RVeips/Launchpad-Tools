@@ -21,9 +21,9 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
-std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+std::shared_ptr<spdlog::logger> Logger::s_CoreLogger;
 
-void Log::Initialize() {
+void Logger::Initialize() {
     std::vector<spdlog::sink_ptr> logSinks;
     logSinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("LaunchpadTools.log", true));

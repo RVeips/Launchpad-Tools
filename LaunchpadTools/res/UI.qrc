@@ -1,8 +1,0 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-    <qresource>
-        <file alias="Icon">Images/CFXS_L0_BIG.png</file>
-        <file alias="CFXS_SVG">Images/CFXS_NotPerfect.svg</file>
-        <file alias="UI/LaunchPad_X.html">UI/LaunchPad_X.html</file>
-    </qresource>
-</RCC>
