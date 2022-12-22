@@ -1,0 +1,130 @@
+/* toolbar-entry        | category block        */
+/* toolbar-button       | hover trigger         */
+/* toolbar-actions      | action list           */
+/* toolbar-action-entry | action button         */
+/* toolbar-action-sep   | action separator line */
+
+#toolbar {
+    display: flex;
+    flex-direction: row;
+    position: fixed;
+    width: 100%;
+    height: var(--toolbar_height);
+    background-color: var(--lighter2_bg);
+    box-shadow: 0px 1px 2px #000;
+    z-index: 4;
+    padding: 0;
+    margin: 0;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-entry {
+    position: relative;
+    display: inline-block;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-button {
+    background-color: none;
+    color: var(--text_placeholder);
+    padding: 0px 0.75rem;
+    font-size: 1rem;
+    border: none;
+    height: 100%;
+    transition-duration: 100ms;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-tab {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    border-bottom: 0.2rem solid var(--accent_bg) !important;
+    padding-top: 0.2rem;
+    box-sizing: border-box;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-tab-selected {
+    background-color: var(--accent_bg) !important;
+    color: #FFF;
+}
+
+.toolbar-tab:hover {
+    cursor: pointer;
+    background-color: var(--accent2_ol);
+    border-bottom: 0.2rem solid var(--accent2_ol);
+    color: #FFF;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-actions {
+    display: none;
+    position: absolute;
+    background-color: var(--lighter_bg);
+    min-width: 4rem;
+    box-shadow: 1px 3px 4px #000;
+    padding: 0.25rem 0;
+    z-index: 1;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-action-entry {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-decoration: none;
+    display: block;
+    height: var(--toolbar_action_height);
+    background-color: var(--lighter_bg);
+    color: var(--text_placeholder);
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: left;
+    transition-duration: 100ms;
+}
+
+.toolbar-action-entry:hover {
+    color: var(--text);
+    background-color: var(--accent_bg);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-action-sep {
+    display: block;
+    height: 0;
+    background-color: var(--toolbar_hover);
+    border: none;
+    padding: 1px 0;
+    margin: 2px 2px;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-entry-button-trighover {
+    background-color: var(--toolbar_hover);
+    color: #FFF;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.toolbar-entry-action-trighover {
+    display: block;
+}
+
+#toolbar-uniformatdiv {
+    flex-direction: row;
+    margin-left: auto;
+    height: 100%;
+    padding-right: 0.25rem;
+}
+
+#toolbar-uniformatdiv span {
+    color: var(--text_placeholder);
+    padding-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+#toolbar-uniformatdiv select {
+    height: 80% !important;
+    font-size: 0.9rem;
+    padding-left: 0.15rem;
+    padding-right: 0.15rem;
+}

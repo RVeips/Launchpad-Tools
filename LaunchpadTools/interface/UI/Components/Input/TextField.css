@@ -1,0 +1,124 @@
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-frame {
+    position: relative;
+    background-color: var(--field_bg);
+    border: 1px solid var(--button_light_bg);
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    overflow: visible;
+    box-shadow: 2px 2px 2px #000;
+}
+
+/* .textfield-frame:hover {
+    cursor: text;
+} */
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-disabled {
+    cursor: default !important;
+    background-color: var(--lighter2_bg) !important;
+    border: 1px solid var(--button_light_bg) !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-text {
+    position: absolute;
+    color: #FFF;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-text-rs {
+    right: 1.5rem !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-icon {
+    position: absolute;
+    background-color: inherit;
+    top: 0;
+    bottom: 0;
+    right: 0.15rem;
+    width: 1.2rem;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    padding-left: 0.25rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-input {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.textfield-input::placeholder {
+    color: var(--text_placeholder);
+    font-style: italic;
+}
+
+.textfield-input-disabled {
+    color: var(--text_placeholder) !important;
+}
+
+.textfield-input:focus {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+.textfield-input:-moz-focusring {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-prefix {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.25rem;
+    right: 0;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.textfield-unit {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0.25rem;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    justify-content: center;
+}

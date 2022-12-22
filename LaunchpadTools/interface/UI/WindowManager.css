@@ -1,0 +1,204 @@
+:root {
+    --sidebar_width: 2.75rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.fs-overlay-window {
+    position: fixed;
+    display: block;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    backdrop-filter: var(--overlay_backdrop);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.popup-window-bar {
+    position: relative;
+    height: 2rem;
+    min-height: 2rem;
+    max-height: 2rem;
+    width: 100%;
+    background-color: var(--lighter2_bg);
+    top: 0;
+    font-size: 1.25rem;
+    color: var(--text);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.popup-window-content {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    line-height: 1.5rem;
+    color: var(--text);
+    flex-grow: 1;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.window-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 2rem;
+    width: 2rem;
+    background-color: var(--close_red);
+    outline: 2px solid var(--close_ol_red);
+    outline-offset: -2px;
+    transition-duration: 100ms;
+    cursor: pointer;
+}
+
+.window-close:hover {
+    background-color: var(--close_ol_red);
+}
+
+.window-close::before,
+.window-close::after {
+    position: absolute;
+    content: '';
+    width: 80%;
+    height: 3px;
+    background-color: rgb(255, 0, 0);
+}
+
+.window-close::before {
+    transform: rotate(45deg);
+}
+
+.window-close::after {
+    transform: rotate(-45deg);
+}
+
+#contextMenuOverlay {
+    z-index: 20;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.context-menu {
+    position: absolute;
+    min-width: 4rem;
+    height: auto;
+    /* display: flex;
+    flex-direction: column; */
+    background-color: var(--lighter_bg);
+    box-shadow: 0 0 2px 2px #000;
+    max-height: 50vh;
+    overflow-y: auto;
+    /* padding: 0.25rem 0; */
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.context-menu-category {
+    position: sticky;
+    top: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-decoration: none;
+    display: block;
+    height: calc(var(--toolbar_action_height) / 2);
+    background-color: var(--toolbar_hover);
+    color: var(--text);
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.context-menu-entry {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-decoration: none;
+    display: block;
+    height: var(--toolbar_action_height);
+    background-color: var(--lighter_bg);
+    color: var(--text_placeholder);
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: left;
+    transition-duration: 100ms;
+}
+
+.context-menu-entry:hover {
+    color: var(--text);
+    background-color: var(--accent_bg);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.context-menu-sep {
+    display: block;
+    height: 0;
+    background-color: var(--toolbar_hover);
+    border: none;
+    padding: 1px 0;
+    margin: 2px 2px;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.sidebar-button {
+    position: relative;
+    width: calc(var(--sidebar_width) - 2 * 0.25rem);
+    height: calc(var(--sidebar_width) - 2 * 0.25rem);
+    margin-bottom: 0.4rem;
+    box-sizing: border-box;
+    box-shadow: 1px 1px 3px #000;
+    background-color: var(--button_bg);
+    border-radius: 1px;
+    transition-duration: 100ms;
+}
+
+.sidebar-button>svg {
+    width: 100%;
+    height: 100%;
+    transform: scale(0.75);
+    filter: drop-shadow(1px 1px 1px #000);
+}
+
+.sidebar-button:hover {
+    background-color: var(--button_ol);
+    cursor: pointer;
+}
+
+.sidebar-button:hover>svg {
+    filter: drop-shadow(2px 2px 2px #000);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.sidebar-button-disabled {
+    background-color: var(--button_disabled) !important;
+}
+
+.sidebar-button-disabled:hover {
+    background-color: var(--button_disabled) !important;
+    cursor: default;
+}
+
+.sidebar-button-disabled>svg {
+    filter: none !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.sidebar-separator {
+    width: calc(var(--sidebar_width) - 2 * 0.25rem);
+    height: 1px;
+    margin-bottom: 0.4rem;
+    background-color: var(--toolbar_hover);
+    box-sizing: border-box;
+}

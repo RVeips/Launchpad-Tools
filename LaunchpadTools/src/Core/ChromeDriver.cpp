@@ -12,7 +12,10 @@
 #include <QFile>
 #include <QTimer>
 #include <QObject>
-#include <QApplication>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QWebChannel>
+#include "MIDI_Bind.hpp"
 
 #define SCHEMENAME "CFXS"
 static const QByteArray SCHEME_NAME = SCHEMENAME;
@@ -28,11 +31,20 @@ public:
         QUrl url          = job->requestUrl();
         QUrl initiator    = job->initiator();
 
-        if (method == GET && url == INDEX) {
-            auto fpath  = QCoreApplication::applicationDirPath() + QSL("/ui/") + url.toString().split(QChar{':'})[1];
+        if (method == GET) {
+            auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
+            // auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
+            auto fpath  = rootPath + url.toString().split(QChar{':'})[1];
             QFile* file = new QFile(fpath, job);
             if (file->open(QIODevice::ReadOnly)) {
-                job->reply(QByteArrayLiteral("text/html"), file);
+                if (fpath.contains(".htm"))
+                    job->reply(QByteArrayLiteral("text/html"), file);
+                else if (fpath.contains(".css"))
+                    job->reply(QByteArrayLiteral("text/css"), file);
+                else if (fpath.contains(".js"))
+                    job->reply(QByteArrayLiteral("text/javascript"), file);
+                else
+                    job->reply(QByteArrayLiteral("text/plain"), file);
             } else {
                 LOG_ERROR("Failed to open file: {}", QSL("ui/") + url.toString().split(QChar{':'})[1]);
                 job->fail(QWebEngineUrlRequestJob::UrlNotFound);
@@ -89,9 +101,22 @@ void ChromeDriver::OpenWindow() {
 
     auto view = new UI_View;
     auto page = new QWebEnginePage(profile);
+
+    auto midiBind    = new MIDI_Bind;
+    auto mainChannel = new QWebChannel(page);
+    mainChannel->registerObject("midi", midiBind);
+    page->setWebChannel(mainChannel);
+
     view->setPage(page);
-    page->load(INDEX);
     view->setContextMenuPolicy(Qt::NoContextMenu);
-    view->showMaximized();
-    page->setBackgroundColor(QColor{16, 16, 16});
+
+    QObject::connect(page, &QWebEnginePage::loadFinished, [=]() {
+        midiBind->UpdateDeviceList();
+
+        view->setZoomFactor(1.5);
+        page->setBackgroundColor(QColor{16, 16, 16});
+        view->showMaximized();
+    });
+
+    page->load(INDEX);
 }

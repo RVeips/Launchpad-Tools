@@ -1,0 +1,71 @@
+/* WEB_COMPILER_CSS_CLASS */
+.dd-menu-frame {
+    position: relative;
+    background-color: var(--field_bg);
+    border: 1px solid var(--button_light_bg);
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    overflow: hidden;
+    box-shadow: 2px 2px 2px #000;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.dd-menu-frame:hover {
+    cursor: pointer;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.dd-menu-disabled {
+    cursor: default !important;
+    background-color: var(--lighter2_bg) !important;
+    border: 1px solid var(--button_light_bg) !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.dd-text {
+    position: absolute;
+    color: #FFF;
+    top: 0;
+    left: 0rem;
+    bottom: 0;
+    right: 0rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.dd-arrow {
+    position: absolute;
+    background-color: inherit;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 1.5rem;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    padding-left: 0.25rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.dd-prefix {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.25rem;
+    right: 0;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.dd-selection {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0.25rem;
+    right: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

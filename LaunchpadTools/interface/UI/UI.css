@@ -1,0 +1,103 @@
+#session_timeout {
+    position: fixed;
+    display: block;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 11;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: var(--overlay_backdrop);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: rgb(220, 0, 0);
+    font-size: 2rem;
+    font-weight: bolder;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.zero-gap-grid {
+    display: grid;
+    gap: 0;
+}
+
+/* Resizable Panels */
+/* WEB_COMPILER_CSS_CLASS */
+.szpanel-handle-x-left {
+    position: absolute;
+    top: -2rem;
+    left: -2px;
+    bottom: 0;
+    width: 4px;
+    background-color: transparent;
+    transition-delay: 250ms;
+    transition-duration: 100ms;
+}
+
+.szpanel-handle-x-left:hover {
+    cursor: col-resize;
+    background-color: var(--accent2_ol);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.szpanel-handle-active-x-left {
+    cursor: grabbing !important;
+    transition-delay: 0ms !important;
+    background-color: var(--accent_ol) !important;
+}
+
+/* WEB_COMPILER_CSS_FLAGS */
+.top-right-status-svg {
+    position: absolute;
+    width: 0.8rem;
+    height: 0.8rem;
+    top: -0.25rem;
+    right: -0.25rem;
+    filter: drop-shadow(0px 0px 1px #000) drop-shadow(0px 0px 1px #000);
+}
+
+/* WEB_COMPILER_CSS_FLAGS */
+.field-error {
+    background-color: var(--error_field_bg) !important;
+    border: 1px solid var(--error_field_ol) !important;
+}
+
+/* WEB_COMPILER_CSS_FLAGS */
+.field-warning {
+    background-color: var(--warning_field_bg) !important;
+    border: 1px solid var(--warning_field_ol) !important;
+}
+
+/* WEB_COMPILER_CSS_FLAGS */
+.field-info {
+    background-color: var(--info_field_bg) !important;
+    border: 1px solid var(--info_field_ol) !important;
+}
+
+/* WEB_COMPILER_CSS_FLAGS */
+.field-disabled {
+    background-color: var(--disabled_field_bg) !important;
+    border: 1px solid var(--disabled_field_ol) !important;
+    cursor: default !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.input-field {
+    width: 25%;
+    min-width: 18rem;
+    height: var(--field_height);
+    margin-bottom: 0.25rem;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.input-field-wider {
+    width: 25%;
+    min-width: 20rem;
+    height: var(--field_height);
+    margin-bottom: 0.25rem;
+}

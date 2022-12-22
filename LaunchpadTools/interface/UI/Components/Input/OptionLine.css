@@ -1,0 +1,50 @@
+/* WEB_COMPILER_CSS_CLASS */
+.optline-frame {
+    position: relative;
+    background-color: var(--lighter_bg);
+    border: 1px solid var(--button_light_bg);
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    overflow: hidden;
+    box-shadow: 2px 2px 2px #000;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.optline-disabled {
+    cursor: default !important;
+    background-color: var(--lighter2_bg) !important;
+    border: 1px solid var(--button_light_bg) !important;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.optline-option {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0px 0px 2px #000;
+}
+
+.optline-option:hover {
+    cursor: pointer;
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.optline-option-single {
+    background-color: var(--lighter2_bg);
+    border-bottom: 0.15rem solid var(--accent_ol);
+    padding-top: 0.15rem;
+    transition-duration: 100ms;
+}
+
+.optline-option-single:hover {
+    background-color: var(--accent_ol);
+    border-bottom: 0.15rem solid var(--accent_ol);
+}
+
+/* WEB_COMPILER_CSS_CLASS */
+.optline-option-single-sel {
+    background-color: var(--accent_ol);
+}

@@ -163,6 +163,8 @@
         "qresizeevent": "cpp",
         "qsize": "cpp",
         "qmainwindow": "cpp",
-        "qvboxlayout": "cpp"
+        "qvboxlayout": "cpp",
+        "qjsonobject": "cpp",
+        "qwebchannel": "cpp"
     }
 }

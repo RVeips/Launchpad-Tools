@@ -12,11 +12,16 @@ static bool s_Initialized    = false;
 static RtMidiIn* s_MIDI_In   = nullptr;
 static RtMidiOut* s_MIDI_Out = nullptr;
 
-static RtMidiIn* s_TestDeviceIn   = nullptr;
-static RtMidiOut* s_TestDeviceOut = nullptr;
+static RtMidiIn* s_LaunchIn   = nullptr;
+static RtMidiOut* s_LaunchOut = nullptr;
+static RtMidiOut* s_MainOut   = nullptr;
+static int s_IndexLaunchOut   = -1;
+static int s_IndexMainOut     = -1;
 
-static std::unordered_map<QString, int> s_MIDI_InputDeviceIndexMap;
-static std::unordered_map<QString, int> s_MIDI_OutputDeviceIndexMap;
+std::unordered_map<QString, int> MIDI_Driver::s_MIDI_InputDeviceIndexMap;
+std::unordered_map<QString, int> MIDI_Driver::s_MIDI_OutputDeviceIndexMap;
+std::unordered_map<int, MIDI_Driver::Device> MIDI_Driver::s_MIDI_InputDevices;
+std::unordered_map<int, MIDI_Driver::Device> MIDI_Driver::s_MIDI_OutputDevices;
 ////////////////////////////////////////////////////////////////////////
 
 void MIDI_Driver::Initialize() {
@@ -63,6 +68,7 @@ void MIDI_Driver::UpdateDeviceList() {
             try {
                 auto portName                        = QString::fromStdString(s_MIDI_In->getPortName(i));
                 s_MIDI_InputDeviceIndexMap[portName] = i;
+                s_MIDI_InputDevices[i]               = {i, portName};
                 LOG_TRACE(" - [{}] {}", i, portName);
             } catch (const RtMidiError& err) {
                 LOG_ERROR("Failed to get MIDI input device #{} info: {}", i, err.what());
@@ -80,6 +86,7 @@ void MIDI_Driver::UpdateDeviceList() {
             try {
                 auto portName                         = QString::fromStdString(s_MIDI_Out->getPortName(i));
                 s_MIDI_OutputDeviceIndexMap[portName] = i;
+                s_MIDI_OutputDevices[i]               = {i, portName};
                 LOG_TRACE(" - [{}] {}", i, portName);
             } catch (const RtMidiError& err) {
                 LOG_ERROR("Failed to get MIDI output device #{} info: {}", i, err.what());
@@ -103,7 +110,8 @@ uint8_t s_GridMap[8][8]      = {
     {21, 22, 23, 24, 25, 26, 27, 28},
     {11, 12, 13, 14, 15, 16, 17, 18},
 };
-uint8_t s_LogoMap = 99;
+uint8_t s_FirstPad = 11;
+uint8_t s_LogoMap  = 99;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 [[maybe_unused]] static const std::vector<uint8_t>& msg_SetMode(std::vector<uint8_t>& vec, bool programmer) {
     return vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x0E, (uint8_t)(programmer ? 0x01 : 0x00), 0xF7};
@@ -116,105 +124,194 @@ uint8_t s_LogoMap = 99;
 [[maybe_unused]] static const std::vector<uint8_t>& msg_SetRGB(std::vector<uint8_t>& vec, uint8_t index, float r, float g, float b) {
     return vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03, 0x03, index, (uint8_t)(127 * r), (uint8_t)(127 * g), (uint8_t)(127 * b), 0xF7};
 }
+
+[[maybe_unused]] static const std::vector<uint8_t>& msg_SetFlash(std::vector<uint8_t>& vec, uint8_t index, uint8_t a, uint8_t b) {
+    return vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03, 0x01, index, a, b, 0xF7};
+}
+
+[[maybe_unused]] static const std::vector<uint8_t>& msg_SetPulse(std::vector<uint8_t>& vec, uint8_t index, uint8_t a) {
+    return vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03, 0x02, index, a, 0xF7};
+}
+
+[[maybe_unused]] static void msg_InitMultiRGB(std::vector<uint8_t>& vec) {
+    vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03};
+}
+[[maybe_unused]] static void msg_AddMultiRGB(std::vector<uint8_t>& vec, uint8_t index, float r, float g, float b) {
+    vec.push_back(0x03);
+    vec.push_back(index);
+    vec.push_back((uint8_t)(127 * r));
+    vec.push_back((uint8_t)(127 * g));
+    vec.push_back((uint8_t)(127 * b));
+}
+[[maybe_unused]] static void msg_EndMultiRGB(std::vector<uint8_t>& vec) {
+    vec.push_back(0xF7);
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// void MIDI_Driver::TestFunction() {
-//     // Input
-//     auto inDevIt = s_MIDI_InputDeviceIndexMap.find("MIDIIN2 (LPX MIDI)");
-//     if (inDevIt != s_MIDI_InputDeviceIndexMap.end()) {
-//         auto portIndex = (*inDevIt).second;
+static void UpdateIndicator() {
+    if (!s_LaunchOut)
+        return;
+    std::vector<uint8_t> tmp;
+    float r, g, b;
 
-//         try {
-//             s_TestDeviceIn = new RtMidiIn;
-//         } catch (const RtMidiError& err) {
-//             LOG_ERROR("MIDI input test device initialization failed: {}", err.what());
-//             return;
-//         }
+    if (s_MainOut && s_LaunchIn) {
+        r = 0;
+        g = 0.5;
+        b = 0;
+    } else if (s_MainOut) {
+        r = 1;
+        g = 1;
+        b = 0;
+    } else if (s_LaunchIn) {
+        r = 1;
+        g = 0.5;
+        b = 0;
+    } else {
+        r = 1;
+        g = 0;
+        b = 0;
+    }
 
-//         s_TestDeviceIn->setBufferSize(MIDI_BUFFER_SIZE, MIDI_BUFFER_COUNT);
-//         s_TestDeviceIn->ignoreTypes(false, false, true);
-//         s_TestDeviceIn->openPort(portIndex);
-//         if (!s_TestDeviceIn->isPortOpen()) {
-//             LOG_ERROR("Input device port open failed");
-//             return;
-//         }
-//         s_TestDeviceIn->setCallback(
-//             [](double timestamp, std::vector<uint8_t>* message, void* dis) {
-//                 ProcessMessage(timestamp, dis, *message);
-//             },
-//             s_TestDeviceIn);
+    s_LaunchOut->sendMessage(&msg_SetRGB(tmp, s_LogoMap, r, g, b));
+}
 
-//         LOG_TRACE("Input test device input initialized");
-//     } else {
-//         LOG_ERROR("Input test device not found");
-//     }
+QString MIDI_Driver::SetLaunchIn(int portIndex) {
+    if (s_LaunchIn) {
+        s_LaunchIn->cancelCallback();
+        try {
+            s_LaunchIn->closePort();
+        } catch (const std::exception&) {
+        }
+        delete s_LaunchIn;
+        s_LaunchIn = nullptr;
+    }
 
-//     // Output
-//     auto outDevIt = s_MIDI_OutputDeviceIndexMap.find("MIDIOUT2 (LPX MIDI)");
-//     if (outDevIt != s_MIDI_OutputDeviceIndexMap.end()) {
-//         auto portIndex = (*outDevIt).second;
+    try {
+        s_LaunchIn = new RtMidiIn;
+    } catch (const RtMidiError& err) {
+        s_LaunchIn = nullptr;
+        UpdateIndicator();
+        return QString("Initialization failed: ") + QString(err.what());
+    }
 
-//         try {
-//             s_TestDeviceOut = new RtMidiOut;
-//         } catch (const RtMidiError& err) {
-//             LOG_ERROR("MIDI output test device initialization failed: {}", err.what());
-//             return;
-//         }
+    s_LaunchIn->setBufferSize(MIDI_BUFFER_SIZE, MIDI_BUFFER_COUNT);
+    s_LaunchIn->ignoreTypes(false, false, true);
+    s_LaunchIn->openPort(portIndex);
+    if (!s_LaunchIn->isPortOpen()) {
+        return "Open port failed";
+    }
+    s_LaunchIn->setCallback(
+        [](double timestamp, std::vector<uint8_t>* message, void* dis) {
+            LaunchIn_ProcessMessage(timestamp, dis, *message);
+        },
+        s_LaunchIn);
 
-//         s_TestDeviceOut->openPort(portIndex);
-//         if (!s_TestDeviceOut->isPortOpen()) {
-//             LOG_ERROR("Output device port open failed");
-//             return;
-//         }
-//         LOG_TRACE("Output test device input initialized");
-//     } else {
-//         LOG_ERROR("Output test device not found");
-//     }
+    UpdateIndicator();
+    return "";
+}
 
-//     try {
-//         std::vector<uint8_t> tmp;
-//         s_TestDeviceOut->sendMessage(&msg_SetMode(tmp, true));
-//         s_TestDeviceOut->sendMessage(&msg_SetBrightness(tmp, 1.0f));
-//     } catch (const RtMidiError& err) {
-//         LOG_ERROR(err.what());
-//     }
+QString MIDI_Driver::SetLaunchOut(int portIndex) {
+    if (s_MainOut && s_IndexMainOut == portIndex) {
+        try {
+            s_MainOut->closePort();
+        } catch (const std::exception&) {
+        }
+        delete s_MainOut;
+        s_MainOut = nullptr;
+    }
+    if (s_LaunchOut) {
+        try {
+            std::vector<uint8_t> tmp;
+            s_LaunchOut->sendMessage(&msg_SetFlash(tmp, s_LogoMap, 0x05, 0x00)); // Red/Black palette
+            s_LaunchOut->closePort();
+        } catch (const std::exception&) {
+        }
+        delete s_LaunchOut;
+        s_LaunchOut = nullptr;
+    }
 
-//     static std::vector<uint8_t> tmp;
-//     for (int y = 0; y < 8; y++) {
-//         for (int x = 0; x < 8; x++) {
-//             s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, s_GridMap[x][y], 0, 0, 0));
-//         }
-//     }
+    try {
+        s_LaunchOut = new RtMidiOut;
+    } catch (const RtMidiError& err) {
+        s_LaunchOut = nullptr;
+        UpdateIndicator();
+        return QString("Initialization failed: ") + QString(err.what());
+    }
 
-//     for (int i = 0; i < 8; i++) {
-//         s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, s_HorizontalBarMap[i], 0, 0, 0));
-//         s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, s_VerticalBarMap[i], 0, 0, 0));
-//     }
-//     s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, s_LogoMap, 0, 0, 0));
+    s_LaunchOut->openPort(portIndex);
+    if (!s_LaunchOut->isPortOpen()) {
+        return "Open port failed";
+    }
 
-//     // auto timer = new QTimer;
-//     // QObject::connect(timer, &QTimer::timeout, [=]() {
-//     //     if (effect) {
-//     //         std::vector<uint8_t> vec = {0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03};
-//     //         for (int i = 0; i < 64; i++) {
-//     //             uint8_t v  = (effect->GetOutputRef()[i] * 127);
-//     //             uint8_t vx = (effect->GetOutputRef()[63 - i] * 127);
-//     //             vec.push_back(0x03);
-//     //             vec.push_back(s_GridMap[0][i]);
-//     //             vec.push_back(v);
-//     //             vec.push_back(0);
-//     //             vec.push_back(vx);
-//     //             if (i == 63) {
-//     //                 std::vector<uint8_t> vecx;
-//     //                 s_TestDeviceOut->sendMessage(&msg_SetRGB(vecx, s_LogoMap, v, 0, vx));
-//     //             }
-//     //         }
-//     //         vec.push_back(0xF7);
-//     //         //s_TestDeviceOut->sendMessage(&vec);
-//     //     }
-//     // });
-//     // timer->start(1000 / 43);
-// }
+    try {
+        std::vector<uint8_t> tmp;
+        s_LaunchOut->sendMessage(&msg_SetMode(tmp, true));
+        s_LaunchOut->sendMessage(&msg_SetBrightness(tmp, 1.0f));
+        {
+            msg_InitMultiRGB(tmp);
+            for (int x = 0; x < 8; x++) {
+                for (int y = 0; y < 8; y++) {
+                    msg_AddMultiRGB(tmp, s_GridMap[x][y], 0, 0, 0);
+                }
+            }
+            msg_EndMultiRGB(tmp);
+            s_LaunchOut->sendMessage(&tmp);
+        }
+        {
+            msg_InitMultiRGB(tmp);
+            for (int i = 0; i < 8; i++) {
+                msg_AddMultiRGB(tmp, s_VerticalBarMap[i], 0, 0, 0);
+                msg_AddMultiRGB(tmp, s_HorizontalBarMap[i], 0, 0, 0);
+            }
+            msg_EndMultiRGB(tmp);
+            s_LaunchOut->sendMessage(&tmp);
+        }
+    } catch (const RtMidiError& err) {
+        return QString("Failed to initialize Launchpad settings\n") + QString(err.what());
+    }
+
+    s_IndexLaunchOut = portIndex;
+    UpdateIndicator();
+    return "";
+}
+
+QString MIDI_Driver::SetMainOut(int portIndex) {
+    if (s_MainOut) {
+        try {
+            s_MainOut->closePort();
+        } catch (const std::exception&) {
+        }
+        delete s_MainOut;
+        s_MainOut = nullptr;
+    }
+    if (s_LaunchOut && s_IndexLaunchOut == portIndex) {
+        try {
+            std::vector<uint8_t> tmp;
+            s_LaunchOut->sendMessage(&msg_SetFlash(tmp, s_LogoMap, 0x05, 0x00)); // Red/Black palette
+            s_LaunchOut->closePort();
+        } catch (const std::exception&) {
+        }
+        delete s_LaunchOut;
+        s_LaunchOut = nullptr;
+    }
+
+    try {
+        s_MainOut = new RtMidiOut;
+    } catch (const RtMidiError& err) {
+        s_MainOut = nullptr;
+        UpdateIndicator();
+        return QString("Initialization failed: ") + QString(err.what());
+    }
+
+    s_MainOut->openPort(portIndex);
+    if (!s_MainOut->isPortOpen()) {
+        return "Open port failed";
+    }
+
+    s_IndexMainOut = portIndex;
+    UpdateIndicator();
+    return "";
+}
 
 static QString MessageToString(const std::vector<uint8_t>& msg) {
     QString res = "";
@@ -228,7 +325,10 @@ static QString MessageToString(const std::vector<uint8_t>& msg) {
     return res;
 }
 
-void MIDI_Driver::ProcessMessage(double timestamp, void* port, const std::vector<uint8_t>& message) {
+void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const std::vector<uint8_t>& message) {
+    if (!s_LaunchOut)
+        return;
+
     static std::vector<uint8_t> tmp;
     LOG_TRACE("RX {} [{}]", message.size(), MessageToString(message));
 
@@ -238,10 +338,7 @@ void MIDI_Driver::ProcessMessage(double timestamp, void* port, const std::vector
         uint8_t pad   = message[1];
 
         if (press) {
-            if (power > 64)
-                s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, pad, 1, 1, 1));
-            else
-                s_TestDeviceOut->sendMessage(&msg_SetRGB(tmp, pad, 1, 0, 0));
+            s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, 1, 0, power / 255.0f));
         }
     }
 }
