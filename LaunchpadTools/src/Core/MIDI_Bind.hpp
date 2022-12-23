@@ -1,3 +1,4 @@
+#include <qdebug.h>
 #include <QObject>
 #include <QJsonObject>
 #include <QJsonArray>

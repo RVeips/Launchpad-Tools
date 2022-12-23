@@ -122,7 +122,7 @@ void ChromeDriver::OpenWindow() {
         }
 
         if (!midiBind->GetConfig().contains("brightness")) {
-            midiBind->GetConfig()["brightness"] = 0.5f;
+            midiBind->GetConfig()["brightness"] = 1.0f;
         }
 
         if (!midiBind->GetConfig().contains("toggle_mode")) {
@@ -137,8 +137,8 @@ void ChromeDriver::OpenWindow() {
                     {"on", QJsonArray{1, 1, 1}},
                     {"mode", "solid"},
                     {"off_solid", true},
-                    {"palette_on", "3"},
-                    {"palette_off", "0"},
+                    {"palette_on", 3},
+                    {"palette_off", 0},
                 };
             }
             midiBind->GetConfig()["color"] = cobj;

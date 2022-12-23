@@ -450,6 +450,8 @@ void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const st
             if (state) {
                 switch (pcfg.led_mode) {
                     case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, pcfg.r_a, pcfg.g_a, pcfg.b_a)); break;
+                    case LED_PULSE: s_LaunchOut->sendMessage(&msg_SetPulse(tmp, pad, pcfg.palette_on)); break;
+                    case LED_FLASH: s_LaunchOut->sendMessage(&msg_SetFlash(tmp, pad, pcfg.palette_on, pcfg.palette_off)); break;
                 }
             } else {
                 if (pcfg.off_solid) {
@@ -457,6 +459,8 @@ void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const st
                 } else {
                     switch (pcfg.led_mode) {
                         case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, pcfg.r_b, pcfg.g_b, pcfg.b_b)); break;
+                        case LED_PULSE: s_LaunchOut->sendMessage(&msg_SetPulse(tmp, pad, pcfg.palette_off)); break;
+                        case LED_FLASH: s_LaunchOut->sendMessage(&msg_SetFlash(tmp, pad, pcfg.palette_on, pcfg.palette_off)); break;
                     }
                 }
             }
@@ -465,21 +469,24 @@ void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const st
             if (press) {
                 pcfg.state = !pcfg.state;
                 if (pcfg.state) {
-                    s_LaunchOut->sendMessage(&message);
+                    if (s_MainOut)
+                        s_MainOut->sendMessage(&message);
                     SetLED(true);
                     if (s_NoteOnCallback)
                         s_NoteOnCallback(pad, 127);
                 } else {
                     std::vector<uint8_t> msgCopy = message;
                     msgCopy[2]                   = 0;
-                    s_LaunchOut->sendMessage(&msgCopy);
+                    if (s_MainOut)
+                        s_MainOut->sendMessage(&msgCopy);
                     SetLED(false);
                     if (s_NoteOffCallback)
                         s_NoteOffCallback(pad, 0);
                 }
             }
         } else {
-            s_LaunchOut->sendMessage(&message);
+            if (s_MainOut)
+                s_MainOut->sendMessage(&message);
             if (press) {
                 SetLED(true);
                 if (s_NoteOnCallback)

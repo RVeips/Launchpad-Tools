@@ -19,6 +19,11 @@ function distance(a, b) {
     return Math.sqrt(Math.pow(a.r - b.r, 2) + Math.pow(a.g - b.g, 2) + Math.pow(a.b - b.b, 2));
 }
 
+var g_ShiftDown = false
+var c_down = false
+var v_down = false
+var copy_config = {}
+
 function nearestColor(r, g, b) {
     var lowest = Number.POSITIVE_INFINITY;
     var tmp;
@@ -39,6 +44,37 @@ class LaunchPadX {
     static IndexPadMap = {}
 
     static Initialize() {
+        var keyDown = function (event) {
+            if (event.keyCode === 16 || event.charCode === 16) {
+                g_ShiftDown = true;
+            }
+
+            if (event.keyCode == 67) {
+                c_down = true
+            }
+
+            if (event.keyCode == 86) {
+                v_down = true
+            }
+        };
+
+        var keyUp = function (event) {
+            if (event.keyCode === 16 || event.charCode === 16) {
+                g_ShiftDown = false;
+            }
+
+            if (event.keyCode == 67) {
+                c_down = false
+            }
+
+            if (event.keyCode == 86) {
+                v_down = false
+            }
+        };
+
+        window.addEventListener ? document.addEventListener('keydown', keyDown) : document.attachEvent('keydown', keyDown);
+        window.addEventListener ? document.addEventListener('keyup', keyUp) : document.attachEvent('keyup', keyUp);
+
         for (let ce of s_Palette) {
             ce[0] *= 4
             ce[1] *= 4
@@ -90,6 +126,8 @@ class LaunchPadX {
             let stickyToggle = comp.querySelector("#sticky_toggle")
             if (stickyToggle) {
                 stickyToggle.onclick = (e) => {
+                    if (e.ctrlDown || e.altDown || g_ShiftDown)
+                        return
                     if (stickyToggle.classList.contains("lpx-sticky-toggle-active")) {
                         stickyToggle.classList.remove("lpx-sticky-toggle-active")
                     } else {
@@ -106,6 +144,8 @@ class LaunchPadX {
             let flashModeToggle = comp.querySelector("#set_mode_flash")
             if (solidModeToggle) {
                 solidModeToggle.onclick = (e) => {
+                    if (e.ctrlDown || e.altDown || g_ShiftDown || c_down || v_down)
+                        return
                     if (!solidModeToggle.classList.contains("lpx-mode-active")) {
                         solidModeToggle.classList.add("lpx-mode-active")
                         pulseModeToggle.classList.remove("lpx-mode-active")
@@ -118,6 +158,8 @@ class LaunchPadX {
             }
             if (pulseModeToggle) {
                 pulseModeToggle.onclick = (e) => {
+                    if (e.ctrlDown || e.altDown || g_ShiftDown || c_down || v_down)
+                        return
                     if (!pulseModeToggle.classList.contains("lpx-mode-active")) {
                         solidModeToggle.classList.remove("lpx-mode-active")
                         pulseModeToggle.classList.add("lpx-mode-active")
@@ -130,6 +172,8 @@ class LaunchPadX {
             }
             if (flashModeToggle) {
                 flashModeToggle.onclick = (e) => {
+                    if (e.ctrlDown || e.altDown || g_ShiftDown || c_down || v_down)
+                        return
                     if (!flashModeToggle.classList.contains("lpx-mode-active")) {
                         solidModeToggle.classList.remove("lpx-mode-active")
                         pulseModeToggle.classList.remove("lpx-mode-active")
@@ -233,7 +277,7 @@ class LaunchPadX {
             // mirror back
             for (var key in cfg.color) {
                 var cc = cfg.color[key]
-                bind_MIDI.SetColorConfig(key, cc.on[0], cc.on[1], cc.on[2], cc.off[0], cc.off[1], cc.off[2], cc.mode, cc.off_solid, [cc.palette_on, cc.palette_off])
+                bind_MIDI.SetColorConfig(key, cc.on[0], cc.on[1], cc.on[2], cc.off[0], cc.off[1], cc.off[2], cc.mode, cc.off_solid, [+cc.palette_on, +cc.palette_off])
             }
 
             for (let ek in LaunchPadX.IndexPadMap) {
@@ -251,34 +295,47 @@ class LaunchPadX {
         for (let ek in LaunchPadX.IndexPadMap) {
             let e = LaunchPadX.IndexPadMap[ek]
 
-            e.onclick = (e) => {
+            e.onclick = (evt) => {
                 var cc = bind_MIDI.config.color[ek]
                 var cols = g_SelectedColor.replaceAll("rgb(", "").replaceAll(")", "").split(",");
                 var paletteIndex = nearestColor(+cols[0], +cols[1], +cols[2])
 
-                if (e.shiftKey && (e.ctrlKey || e.altKey)) {
-                    Coloris.close()
-                    if (e.altKey) {
-                        g_SelectedColor = `rgb(${cc.on[0] * 255},${cc.on[1] * 255},${cc.on[2] * 255})`
-                    } else if (e.ctrlKey) {
-                        g_SelectedColor = `rgb(${cc.off[0] * 255},${cc.off[1] * 255},${cc.off[2] * 255})`
+                if (c_down) {
+                    copy_config = {
+                        index: e.dataset.midi_index,
+                        "cc": cc,
+                        toggle: e.querySelector("#sticky_toggle").classList.contains("lpx-sticky-toggle-active")
                     }
-
-                    Coloris({
-                        parent: '#colorPicker',
-                        themeMode: 'dark',
-                        format: 'rgb',
-                        alpha: false,
-                        inline: true,
-                        defaultColor: g_SelectedColor,
-                    })
+                } else if (v_down && copy_config) {
+                    var ccfg = copy_config.cc
+                    bind_MIDI.SetToggleMode(e.dataset.midi_index, copy_config.toggle)
+                    bind_MIDI.SetColorConfig(e.dataset.midi_index, ccfg.on[0], ccfg.on[1], ccfg.on[2], ccfg.off[0], ccfg.off[1], ccfg.off[2], ccfg.mode, ccfg.off_solid, [ccfg.palette_on, ccfg.palette_off])
+                    bind_MIDI.ColorUpdate()
                 } else {
-                    if (e.altKey) {
-                        bind_MIDI.SetColorConfig(ek, (+cols[0]) / 255, (+cols[1]) / 255, (+cols[2]) / 255, cc.off[0], cc.off[1], cc.off[2], cc.mode, cc.off_solid, [paletteIndex, cc.palette_off])
-                        bind_MIDI.ColorUpdate()
-                    } else if (e.ctrlKey) {
-                        bind_MIDI.SetColorConfig(ek, cc.on[0], cc.on[1], cc.on[2], (+cols[0]) / 255, (+cols[1]) / 255, (+cols[2]) / 255, cc.mode, cc.off_solid, [cc.palette_on, paletteIndex])
-                        bind_MIDI.ColorUpdate()
+                    if (evt.shiftKey && (evt.ctrlKey || evt.altKey)) {
+                        Coloris.close()
+                        if (evt.altKey) {
+                            g_SelectedColor = `rgb(${cc.on[0] * 255},${cc.on[1] * 255},${cc.on[2] * 255})`
+                        } else if (evt.ctrlKey) {
+                            g_SelectedColor = `rgb(${cc.off[0] * 255},${cc.off[1] * 255},${cc.off[2] * 255})`
+                        }
+
+                        Coloris({
+                            parent: '#colorPicker',
+                            themeMode: 'dark',
+                            format: 'rgb',
+                            alpha: false,
+                            inline: true,
+                            defaultColor: g_SelectedColor,
+                        })
+                    } else {
+                        if (evt.altKey) {
+                            bind_MIDI.SetColorConfig(ek, (+cols[0]) / 255, (+cols[1]) / 255, (+cols[2]) / 255, cc.off[0], cc.off[1], cc.off[2], cc.mode, cc.off_solid, [+paletteIndex, +cc.palette_off])
+                            bind_MIDI.ColorUpdate()
+                        } else if (evt.ctrlKey) {
+                            bind_MIDI.SetColorConfig(ek, cc.on[0], cc.on[1], cc.on[2], (+cols[0]) / 255, (+cols[1]) / 255, (+cols[2]) / 255, cc.mode, cc.off_solid, [+cc.palette_on, +paletteIndex])
+                            bind_MIDI.ColorUpdate()
+                        }
                     }
                 }
             }
