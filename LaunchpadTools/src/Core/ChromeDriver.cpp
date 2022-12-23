@@ -15,6 +15,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QWebChannel>
+#include <QCoreApplication>
+#include <QJsonDocument>
 #include "MIDI_Bind.hpp"
 
 #define SCHEMENAME "CFXS"
@@ -111,6 +113,37 @@ void ChromeDriver::OpenWindow() {
     view->setContextMenuPolicy(Qt::NoContextMenu);
 
     QObject::connect(page, &QWebEnginePage::loadFinished, [=]() {
+        QFile f(QCoreApplication::applicationDirPath() + "/session.cfg");
+        if (f.open(QIODevice::ReadOnly)) {
+            auto res               = f.readAll();
+            MIDI_Bind::GetConfig() = QJsonDocument::fromJson(res).object();
+            midiBind->Notify();
+            f.close();
+        }
+
+        if (!midiBind->GetConfig().contains("brightness")) {
+            midiBind->GetConfig()["brightness"] = 0.5f;
+        }
+
+        if (!midiBind->GetConfig().contains("toggle_mode")) {
+            midiBind->GetConfig()["toggle_mode"] = QJsonObject{};
+        }
+
+        if (!midiBind->GetConfig().contains("color")) {
+            QJsonObject cobj;
+            for (int i = 11; i < 100; i++) {
+                cobj[QString::number(i)] = QJsonObject{
+                    {"off", QJsonArray{0, 0, 0}},
+                    {"on", QJsonArray{1, 1, 1}},
+                    {"mode", "solid"},
+                    {"off_solid", false},
+                };
+            }
+            midiBind->GetConfig()["color"] = cobj;
+        }
+
+        midiBind->Notify();
+
         midiBind->UpdateDeviceList();
 
         view->setZoomFactor(1.5);

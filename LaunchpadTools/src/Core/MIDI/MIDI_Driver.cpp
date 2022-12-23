@@ -22,9 +22,35 @@ std::unordered_map<QString, int> MIDI_Driver::s_MIDI_InputDeviceIndexMap;
 std::unordered_map<QString, int> MIDI_Driver::s_MIDI_OutputDeviceIndexMap;
 std::unordered_map<int, MIDI_Driver::Device> MIDI_Driver::s_MIDI_InputDevices;
 std::unordered_map<int, MIDI_Driver::Device> MIDI_Driver::s_MIDI_OutputDevices;
+std::function<void(uint8_t pad, uint8_t power)> MIDI_Driver::s_NoteOnCallback;
+std::function<void(uint8_t pad, uint8_t power)> MIDI_Driver::s_NoteOffCallback;
+
+#define LED_SOLID 0
+#define LED_PULSE 1
+#define LED_FLASH 2
+struct PadConfig {
+    bool toggleMode = false;
+    bool state      = false;
+    uint8_t power   = 0;
+    int led_mode    = LED_SOLID;
+    bool ofF_solid  = false;
+    float r_a       = 1;
+    float g_a       = 1;
+    float b_a       = 1;
+    float r_b       = 0;
+    float g_b       = 0;
+    float b_b       = 0;
+    uint8_t p1      = 0;
+    uint8_t p2      = 0;
+};
+std::unordered_map<int, PadConfig> s_PadConfig;
 ////////////////////////////////////////////////////////////////////////
 
 void MIDI_Driver::Initialize() {
+    for (int i = 0; i < 256; i++) {
+        s_PadConfig[i] = {};
+    }
+
     if (IsInitialized()) {
         LOG_WARN("Already initialized");
         return;
@@ -210,6 +236,59 @@ QString MIDI_Driver::SetLaunchIn(int portIndex) {
     return "";
 }
 
+void MIDI_Driver::SetBrightness(float b) {
+    if (s_LaunchOut) {
+        std::vector<uint8_t> tmp;
+        s_LaunchOut->sendMessage(&msg_SetBrightness(tmp, b));
+    }
+}
+
+void MIDI_Driver::SetToggleMode(int note, bool state) {
+    s_PadConfig[note].toggleMode = state;
+}
+
+void MIDI_Driver::SetColorConfig(int midi_index,
+                                 float r_a,
+                                 float g_a,
+                                 float b_a,
+                                 float r_b,
+                                 float g_b,
+                                 float b_b,
+                                 const QString& mode,
+                                 bool off_solid) {
+    s_PadConfig[midi_index].r_a       = r_a;
+    s_PadConfig[midi_index].g_a       = g_a;
+    s_PadConfig[midi_index].b_a       = b_a;
+    s_PadConfig[midi_index].r_b       = r_b;
+    s_PadConfig[midi_index].g_b       = g_b;
+    s_PadConfig[midi_index].b_b       = b_b;
+    s_PadConfig[midi_index].ofF_solid = off_solid;
+    if (mode == "flash") {
+    } else if (mode == "pulse") {
+    } else {
+        s_PadConfig[midi_index].led_mode = LED_SOLID;
+    }
+
+    if (!s_LaunchOut)
+        return;
+
+    auto& pcfg = s_PadConfig[midi_index];
+    std::vector<uint8_t> tmp;
+    if (pcfg.state) {
+        switch (pcfg.led_mode) {
+            case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_a, pcfg.g_a, pcfg.b_a)); break;
+        }
+    } else {
+        if (pcfg.ofF_solid) {
+            s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_b, pcfg.g_b, pcfg.b_b));
+        } else {
+            switch (pcfg.led_mode) {
+                case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_b, pcfg.g_b, pcfg.b_b)); break;
+            }
+        }
+    }
+}
+
 QString MIDI_Driver::SetLaunchOut(int portIndex) {
     if (s_MainOut && s_IndexMainOut == portIndex) {
         try {
@@ -265,6 +344,24 @@ QString MIDI_Driver::SetLaunchOut(int portIndex) {
             }
             msg_EndMultiRGB(tmp);
             s_LaunchOut->sendMessage(&tmp);
+        }
+
+        for (int midi_index = 11; midi_index < 11 + 64 + 16; midi_index++) {
+            auto& pcfg = s_PadConfig[midi_index];
+            std::vector<uint8_t> tmp;
+            if (pcfg.state) {
+                switch (pcfg.led_mode) {
+                    case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_a, pcfg.g_a, pcfg.b_a)); break;
+                }
+            } else {
+                if (pcfg.ofF_solid) {
+                    s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_b, pcfg.g_b, pcfg.b_b));
+                } else {
+                    switch (pcfg.led_mode) {
+                        case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, midi_index, pcfg.r_b, pcfg.g_b, pcfg.b_b)); break;
+                    }
+                }
+            }
         }
     } catch (const RtMidiError& err) {
         return QString("Failed to initialize Launchpad settings\n") + QString(err.what());
@@ -330,15 +427,58 @@ void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const st
         return;
 
     static std::vector<uint8_t> tmp;
-    LOG_TRACE("RX {} [{}]", message.size(), MessageToString(message));
+    // LOG_TRACE("RX {} [{}]", message.size(), MessageToString(message));
 
     if (message.size() == 3 && (message[0] == 0x90 || message[0] == 0xB0)) {
         bool press    = message[2] != 0;
         uint8_t power = message[2];
         uint8_t pad   = message[1];
 
-        if (press) {
-            s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, 1, 0, power / 255.0f));
+        auto& pcfg = s_PadConfig[pad];
+        std::vector<uint8_t> tmp;
+        auto SetLED = [&](bool state) {
+            if (state) {
+                switch (pcfg.led_mode) {
+                    case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, pcfg.r_a, pcfg.g_a, pcfg.b_a)); break;
+                }
+            } else {
+                if (pcfg.ofF_solid) {
+                    s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, pcfg.r_b, pcfg.g_b, pcfg.b_b));
+                } else {
+                    switch (pcfg.led_mode) {
+                        case LED_SOLID: s_LaunchOut->sendMessage(&msg_SetRGB(tmp, pad, pcfg.r_b, pcfg.g_b, pcfg.b_b)); break;
+                    }
+                }
+            }
+        };
+        if (pcfg.toggleMode) {
+            if (press) {
+                pcfg.state = !pcfg.state;
+                if (pcfg.state) {
+                    s_LaunchOut->sendMessage(&message);
+                    SetLED(true);
+                    if (s_NoteOnCallback)
+                        s_NoteOnCallback(pad, 127);
+                } else {
+                    std::vector<uint8_t> msgCopy = message;
+                    msgCopy[2]                   = 0;
+                    s_LaunchOut->sendMessage(&msgCopy);
+                    SetLED(false);
+                    if (s_NoteOffCallback)
+                        s_NoteOffCallback(pad, 0);
+                }
+            }
+        } else {
+            s_LaunchOut->sendMessage(&message);
+            if (press) {
+                SetLED(true);
+                if (s_NoteOnCallback)
+                    s_NoteOnCallback(pad, power);
+            } else {
+                SetLED(false);
+                if (s_NoteOffCallback)
+                    s_NoteOffCallback(pad, 0);
+            }
         }
     }
 }

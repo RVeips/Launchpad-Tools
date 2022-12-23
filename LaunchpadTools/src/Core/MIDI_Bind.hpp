@@ -6,11 +6,30 @@
 class MIDI_Bind : public QObject {
     Q_OBJECT
     Q_PROPERTY(QJsonArray deviceList MEMBER m_DeviceList NOTIFY deviceListUpdated)
+    Q_PROPERTY(QJsonObject config MEMBER m_Config NOTIFY configUpdated)
+
+    static MIDI_Bind* s_MIDI_Bind_Instance;
 
 public:
     MIDI_Bind(QObject* parent = nullptr) : QObject(parent) {
+        s_MIDI_Bind_Instance = this;
+
+        MIDI_Driver::s_NoteOnCallback = [&](uint8_t pad, uint8_t power) {
+            emit noteOn(pad, power);
+        };
+        MIDI_Driver::s_NoteOffCallback = [&](uint8_t pad, uint8_t power) {
+            emit noteOff(pad, power);
+        };
     }
     virtual ~MIDI_Bind() = default;
+
+    static QJsonObject& GetConfig() {
+        return s_MIDI_Bind_Instance->m_Config;
+    }
+
+    void Notify() {
+        emit configUpdated(m_Config);
+    }
 
     void UpdateDeviceList() {
         m_DeviceList = QJsonArray{};
@@ -44,6 +63,35 @@ public:
     }
 
 public slots:
+    void SetBrightness(float brightness) {
+        m_Config["brightness"] = brightness;
+        MIDI_Driver::SetBrightness(brightness);
+    }
+
+    void SetToggleMode(int midi_index, bool mode) {
+        auto ob                         = m_Config["toggle_mode"].toObject();
+        ob[QString::number(midi_index)] = mode;
+        m_Config["toggle_mode"]         = ob;
+        MIDI_Driver::SetToggleMode(midi_index, mode);
+    }
+
+    void
+    SetColorConfig(int midi_index, float r_a, float g_a, float b_a, float r_b, float g_b, float b_b, const QString& mode, bool off_solid) {
+        auto mainObj                         = m_Config["color"].toObject();
+        auto specObj                         = mainObj[QString::number(midi_index)].toObject();
+        specObj["off_solid"]                 = off_solid;
+        specObj["mode"]                      = mode;
+        specObj["on"]                        = QJsonArray{r_a, g_a, b_a};
+        specObj["off"]                       = QJsonArray{r_b, g_b, b_b};
+        mainObj[QString::number(midi_index)] = specObj;
+        m_Config["color"]                    = mainObj;
+        MIDI_Driver::SetColorConfig(midi_index, r_a, g_a, b_a, r_b, g_b, b_b, mode, off_solid);
+    }
+
+    void ColorUpdate() {
+        emit configUpdated(m_Config);
+    }
+
     void SelectEvent(const QString dir, int idx, const QString& type) {
         MIDI_Driver::Device* dev;
         if (dir == "in") {
@@ -85,7 +133,11 @@ public slots:
 
 signals:
     void deviceListUpdated(QJsonArray& list);
+    void configUpdated(QJsonObject& cfg);
+    void noteOn(int pad, int power);
+    void noteOff(int pad, int power);
 
 private:
     QJsonArray m_DeviceList;
+    QJsonObject m_Config;
 };

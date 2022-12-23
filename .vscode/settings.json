@@ -165,6 +165,7 @@
         "qmainwindow": "cpp",
         "qvboxlayout": "cpp",
         "qjsonobject": "cpp",
-        "qwebchannel": "cpp"
+        "qwebchannel": "cpp",
+        "qcoreapplication": "cpp"
     }
 }

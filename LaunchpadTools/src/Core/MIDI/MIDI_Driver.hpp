@@ -20,6 +20,11 @@ public:
     static bool IsInitialized();
     static void UpdateDeviceList();
 
+    static void SetBrightness(float b);
+    static void SetToggleMode(int note, bool state);
+    static void
+    SetColorConfig(int midi_index, float r_a, float g_a, float b_a, float r_b, float g_b, float b_b, const QString& mode, bool off_solid);
+
     static std::unordered_map<int, Device>& GetInputDevices() {
         return s_MIDI_InputDevices;
     }
@@ -30,6 +35,9 @@ public:
     static QString SetLaunchIn(int portIndex);
     static QString SetLaunchOut(int portIndex);
     static QString SetMainOut(int portIndex);
+
+    static std::function<void(uint8_t pad, uint8_t power)> s_NoteOnCallback;
+    static std::function<void(uint8_t pad, uint8_t power)> s_NoteOffCallback;
 
 private:
     static void LaunchIn_ProcessMessage(double timestamp, void* port, const std::vector<uint8_t>& message);

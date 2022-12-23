@@ -52,9 +52,19 @@
     <link rel="stylesheet" href="UI/Components/Input/OptionLine.css">
     <link rel="stylesheet" href="UI/Components/Input/TextField.css">
     <link rel="stylesheet" href="UI/Windows/MIDIInterfacesWindow.css">
+    <link rel="stylesheet" href="UI/LaunchPadX.css">
+
+    <script>
+        var bind_MIDI
+        var g_SelectedColor = "rgb(0,0,0)"
+    </script>
 </head>
 
 <body>
+    <div style="z-index:2;position:absolute;top:8rem;left:2rem;">
+        <div id="colorPicker" class="" style="position:relative;width:min-content;height:min-content;">
+        </div>
+    </div>
     <div id="initial_load" class="loading">
         <div id="mainLoadCircle" class="ld"></div>
         <span id="mainLoadText" style="color: #707070">LOADING...</span>
@@ -62,8 +72,6 @@
     <div id="toolbar" class="no-select">
     </div>
     <div id="window">
-        <div id="colorPicker" style="background-color: red;width:min-content;height:min-content;">
-        </div>
     </div>
     <div id="footer">
         <span id="footerVersion"></span>
@@ -81,8 +89,7 @@
     <script type="text/javascript" src="UI/Components/Input/OptionLine.js"></script>
     <script type="text/javascript" src="UI/Components/Input/TextField.js"></script>
     <script type="text/javascript" src="UI/Windows/MIDIInterfacesWindow.js"></script>
-
-    <script src="LaunchPad_X.js"></script>
+    <script type="text/javascript" src="UI/LaunchPadX.js"></script>
 
     <script>
         Coloris({
@@ -94,8 +101,11 @@
             defaultColor: "#FFFFFF",
         })
         document.addEventListener("coloris:pick", e => {
+            g_SelectedColor = event.detail.color
         })
     </script>
+
+    <script src="main.js"></script>
 </body>
 
 </html>
