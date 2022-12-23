@@ -34,10 +34,10 @@ public:
         QUrl initiator    = job->initiator();
 
         if (method == GET) {
-            auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
-            // auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
-            auto fpath  = rootPath + url.toString().split(QChar{':'})[1];
-            QFile* file = new QFile(fpath, job);
+            // auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
+            auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
+            auto fpath    = rootPath + url.toString().split(QChar{':'})[1];
+            QFile* file   = new QFile(fpath, job);
             if (file->open(QIODevice::ReadOnly)) {
                 if (fpath.contains(".htm"))
                     job->reply(QByteArrayLiteral("text/html"), file);
@@ -136,7 +136,9 @@ void ChromeDriver::OpenWindow() {
                     {"off", QJsonArray{0, 0, 0}},
                     {"on", QJsonArray{1, 1, 1}},
                     {"mode", "solid"},
-                    {"off_solid", false},
+                    {"off_solid", true},
+                    {"palette_on", "3"},
+                    {"palette_off", "0"},
                 };
             }
             midiBind->GetConfig()["color"] = cobj;
