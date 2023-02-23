@@ -1,5 +1,5 @@
 {
-    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.intelliSenseEngine": "disabled",
     "cmake.generator": "Ninja",
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "cmake.buildTask": false,

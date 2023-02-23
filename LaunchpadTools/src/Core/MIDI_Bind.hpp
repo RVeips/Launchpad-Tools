@@ -1,3 +1,4 @@
+#include <qdebug.h>
 #include <QObject>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -75,17 +76,27 @@ public slots:
         MIDI_Driver::SetToggleMode(midi_index, mode);
     }
 
-    void
-    SetColorConfig(int midi_index, float r_a, float g_a, float b_a, float r_b, float g_b, float b_b, const QString& mode, bool off_solid) {
+    void SetColorConfig(int midi_index,
+                        float r_a,
+                        float g_a,
+                        float b_a,
+                        float r_b,
+                        float g_b,
+                        float b_b,
+                        const QString& mode,
+                        bool off_solid,
+                        const QJsonArray& palette) {
         auto mainObj                         = m_Config["color"].toObject();
         auto specObj                         = mainObj[QString::number(midi_index)].toObject();
         specObj["off_solid"]                 = off_solid;
         specObj["mode"]                      = mode;
         specObj["on"]                        = QJsonArray{r_a, g_a, b_a};
         specObj["off"]                       = QJsonArray{r_b, g_b, b_b};
+        specObj["palette_on"]                = palette[0].toInt();
+        specObj["palette_off"]               = palette[1].toInt();
         mainObj[QString::number(midi_index)] = specObj;
         m_Config["color"]                    = mainObj;
-        MIDI_Driver::SetColorConfig(midi_index, r_a, g_a, b_a, r_b, g_b, b_b, mode, off_solid);
+        MIDI_Driver::SetColorConfig(midi_index, r_a, g_a, b_a, r_b, g_b, b_b, mode, off_solid, palette[0].toInt(), palette[1].toInt());
     }
 
     void ColorUpdate() {

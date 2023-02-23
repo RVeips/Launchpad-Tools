@@ -22,8 +22,17 @@ public:
 
     static void SetBrightness(float b);
     static void SetToggleMode(int note, bool state);
-    static void
-    SetColorConfig(int midi_index, float r_a, float g_a, float b_a, float r_b, float g_b, float b_b, const QString& mode, bool off_solid);
+    static void SetColorConfig(int midi_index,
+                               float r_a,
+                               float g_a,
+                               float b_a,
+                               float r_b,
+                               float g_b,
+                               float b_b,
+                               const QString& mode,
+                               bool off_solid,
+                               int palette_on,
+                               int palette_off);
 
     static std::unordered_map<int, Device>& GetInputDevices() {
         return s_MIDI_InputDevices;
