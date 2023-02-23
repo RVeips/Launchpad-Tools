@@ -42,7 +42,7 @@ public:
 int main(int argc, char** argv) {
     Logger::Initialize();
 
-    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--remote-debugging-port=10102");
+    // qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--remote-debugging-port=10102");
 
     ChromeDriver::Initialize();
     MIDI_Driver::Initialize();
