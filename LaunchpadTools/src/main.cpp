@@ -16,6 +16,7 @@ public:
     virtual ~App() {
         QFile f(QCoreApplication::applicationDirPath() + "/session.cfg");
         f.open(QIODevice::ReadWrite | QIODevice::Truncate);
+        qDebug() << MIDI_Bind::GetConfig();
         f.write(QJsonDocument{MIDI_Bind::GetConfig()}.toJson(QJsonDocument::Indented));
         f.close();
     }

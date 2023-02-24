@@ -1,5 +1,6 @@
 #include "ChromeDriver.hpp"
 #include <qabstractsocket.h>
+#include <qjsonarray.h>
 #include <qudpsocket.h>
 
 #include <QWebEngineView>
@@ -38,10 +39,10 @@ public:
         QUrl initiator    = job->initiator();
 
         if (method == GET) {
-            auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
-            // auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
-            auto fpath  = rootPath + url.toString().split(QChar{':'})[1];
-            QFile* file = new QFile(fpath, job);
+            // auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
+            auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
+            auto fpath    = rootPath + url.toString().split(QChar{':'})[1];
+            QFile* file   = new QFile(fpath, job);
             if (file->open(QIODevice::ReadOnly)) {
                 if (fpath.contains(".htm"))
                     job->reply(QByteArrayLiteral("text/html"), file);
@@ -125,15 +126,15 @@ void ChromeDriver::OpenWindow() {
             f.close();
         }
 
-        if (!midiBind->GetConfig().contains("brightness")) {
-            midiBind->GetConfig()["brightness"] = 1.0f;
+        if (!MIDI_Bind::GetConfig().contains("brightness")) {
+            MIDI_Bind::GetConfig()["brightness"] = 1.0f;
         }
 
-        if (!midiBind->GetConfig().contains("toggle_mode")) {
-            midiBind->GetConfig()["toggle_mode"] = QJsonObject{};
+        if (!MIDI_Bind::GetConfig().contains("toggle_mode")) {
+            MIDI_Bind::GetConfig()["toggle_mode"] = QJsonObject{};
         }
 
-        if (!midiBind->GetConfig().contains("color")) {
+        if (!MIDI_Bind::GetConfig().contains("color")) {
             QJsonObject cobj;
             for (int i = 11; i < 100; i++) {
                 cobj[QString::number(i)] = QJsonObject{
@@ -145,7 +146,7 @@ void ChromeDriver::OpenWindow() {
                     {"palette_off", 0},
                 };
             }
-            midiBind->GetConfig()["color"] = cobj;
+            MIDI_Bind::GetConfig()["color"] = cobj;
         }
 
         midiBind->Notify();
@@ -155,37 +156,51 @@ void ChromeDriver::OpenWindow() {
         view->setZoomFactor(1.5);
         page->setBackgroundColor(QColor{16, 16, 16});
         view->showMaximized();
-    });
 
-    auto socket = new QUdpSocket();
-    bool result = socket->bind(QHostAddress{"192.168.8.101"}, 1234);
-    LOG_CRITICAL("Res: {}", result);
-    QObject::connect(socket, &QUdpSocket::readyRead, [=]() {
-        QHostAddress sender;
-        uint16_t port;
-        while (socket->hasPendingDatagrams()) {
-            QByteArray datagram;
-            datagram.resize(socket->pendingDatagramSize());
-            socket->readDatagram(datagram.data(), datagram.size(), &sender, &port);
-            auto str = QString(datagram);
-            for (auto s : str.split(";")) {
-                if (s.contains("s")) {
-                    auto sp = s.split("s");
-                    int idx = sp[0].toInt();
-                    float r = sp[1] == "1" ? 1 : 0;
-                    float g = sp[1] == "1" ? 1 : 0;
-                    float b = sp[1] == "1" ? 1 : 0;
-                    MIDI_Driver::SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, 0, 0);
-                } else {
-                    auto sp = s.split("c");
-                    int idx = sp[0].toInt();
-                    float r = sp[1].mid(0, 2).toInt(nullptr, 16) / 255.0f;
-                    float g = sp[1].mid(2, 2).toInt(nullptr, 16) / 255.0f;
-                    float b = sp[1].mid(4, 2).toInt(nullptr, 16) / 255.0f;
-                    MIDI_Driver::SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, 0, 0);
+        auto socket = new QUdpSocket();
+        bool result = socket->bind(QHostAddress{MIDI_Bind::GetConfig()["link_ip"].toString()}, 1234);
+        LOG_CRITICAL("Res: {}", result);
+
+        struct Color {
+            float r, g, b;
+        };
+        static std::array<Color, 200> s_Colors;
+        float color_div = MIDI_Bind::GetConfig()["color_div"].toDouble();
+
+        QObject::connect(socket, &QUdpSocket::readyRead, [=]() {
+            QHostAddress sender;
+            uint16_t port;
+            while (socket->hasPendingDatagrams()) {
+                QByteArray datagram;
+                datagram.resize(socket->pendingDatagramSize());
+                socket->readDatagram(datagram.data(), datagram.size(), &sender, &port);
+                auto str = QString(datagram);
+                for (auto s : str.split(";")) {
+                    if (s.size() == 0)
+                        continue;
+                    if (s.contains("s")) {
+                        auto sp = s.split("s");
+                        int idx = sp[0].toInt();
+                        float r = sp[1] == "1" ? s_Colors[idx].r : s_Colors[idx].r / color_div;
+                        float g = sp[1] == "1" ? s_Colors[idx].g : s_Colors[idx].g / color_div;
+                        float b = sp[1] == "1" ? s_Colors[idx].b : s_Colors[idx].b / color_div;
+                        midiBind->SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, QJsonArray{0, 0});
+                        midiBind->ColorUpdate();
+                    } else {
+                        auto sp         = s.split("c");
+                        int idx         = sp[0].toInt();
+                        float r         = sp[1].mid(0, 2).toInt(nullptr, 16) / 255.0f;
+                        float g         = sp[1].mid(2, 2).toInt(nullptr, 16) / 255.0f;
+                        float b         = sp[1].mid(4, 2).toInt(nullptr, 16) / 255.0f;
+                        s_Colors[idx].r = r;
+                        s_Colors[idx].g = g;
+                        s_Colors[idx].b = b;
+                        midiBind->SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, QJsonArray{0, 0});
+                        midiBind->ColorUpdate();
+                    }
                 }
             }
-        }
+        });
     });
 
     page->load(INDEX);

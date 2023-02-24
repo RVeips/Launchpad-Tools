@@ -143,8 +143,8 @@ public slots:
     }
 
 signals:
-    void deviceListUpdated(QJsonArray& list);
-    void configUpdated(QJsonObject& cfg);
+    void deviceListUpdated(QJsonArray list);
+    void configUpdated(QJsonObject cfg);
     void noteOn(int pad, int power);
     void noteOff(int pad, int power);
 
