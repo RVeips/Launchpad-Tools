@@ -1,4 +1,6 @@
 #include "ChromeDriver.hpp"
+#include <qabstractsocket.h>
+#include <qudpsocket.h>
 
 #include <QWebEngineView>
 #include <QWebEngineProfile>
@@ -17,7 +19,9 @@
 #include <QWebChannel>
 #include <QCoreApplication>
 #include <QJsonDocument>
+#include "Log/Log.hpp"
 #include "MIDI_Bind.hpp"
+#include <QUdpSocket>
 
 #define SCHEMENAME "CFXS"
 static const QByteArray SCHEME_NAME = SCHEMENAME;
@@ -151,6 +155,37 @@ void ChromeDriver::OpenWindow() {
         view->setZoomFactor(1.5);
         page->setBackgroundColor(QColor{16, 16, 16});
         view->showMaximized();
+    });
+
+    auto socket = new QUdpSocket();
+    bool result = socket->bind(QHostAddress{"192.168.8.101"}, 1234);
+    LOG_CRITICAL("Res: {}", result);
+    QObject::connect(socket, &QUdpSocket::readyRead, [=]() {
+        QHostAddress sender;
+        uint16_t port;
+        while (socket->hasPendingDatagrams()) {
+            QByteArray datagram;
+            datagram.resize(socket->pendingDatagramSize());
+            socket->readDatagram(datagram.data(), datagram.size(), &sender, &port);
+            auto str = QString(datagram);
+            for (auto s : str.split(";")) {
+                if (s.contains("s")) {
+                    auto sp = s.split("s");
+                    int idx = sp[0].toInt();
+                    float r = sp[1] == "1" ? 1 : 0;
+                    float g = sp[1] == "1" ? 1 : 0;
+                    float b = sp[1] == "1" ? 1 : 0;
+                    MIDI_Driver::SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, 0, 0);
+                } else {
+                    auto sp = s.split("c");
+                    int idx = sp[0].toInt();
+                    float r = sp[1].mid(0, 2).toInt(nullptr, 16) / 255.0f;
+                    float g = sp[1].mid(2, 2).toInt(nullptr, 16) / 255.0f;
+                    float b = sp[1].mid(4, 2).toInt(nullptr, 16) / 255.0f;
+                    MIDI_Driver::SetColorConfig(idx, 1, 1, 1, r, g, b, "solid", true, 0, 0);
+                }
+            }
+        }
     });
 
     page->load(INDEX);

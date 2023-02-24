@@ -17,8 +17,6 @@ _G.try = function(fn)
 end
 
 try(function()
-    _G.Socket = require("socket/socket")
-
     _G.ReadFile = function(path)
         path = _G.PATH .. (path:gsub(WRONG_SEPARATOR, SEPARATOR))
         local f = io.open(path, "r")

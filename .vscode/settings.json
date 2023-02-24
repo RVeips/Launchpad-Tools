@@ -170,5 +170,10 @@
     },
     "Lua.diagnostics.globals": [
         "gma"
+    ],
+    "Lua.diagnostics.disable": [
+        "cast-local-type",
+        "need-check-nil",
+        "assign-type-mismatch"
     ]
 }
