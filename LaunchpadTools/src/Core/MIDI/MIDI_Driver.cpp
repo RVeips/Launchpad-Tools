@@ -433,14 +433,18 @@ QString MIDI_Driver::SetMainOut(int portIndex) {
     return res;
 }
 
-void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const std::vector<uint8_t>& message) {
+void MIDI_Driver::LaunchIn_ProcessMessage(double timestamp, void* port, const std::vector<uint8_t>& const_message) {
     if (!s_LaunchOut)
         return;
 
     static std::vector<uint8_t> tmp;
-    // LOG_TRACE("RX {} [{}]", message.size(), MessageToString(message));
 
-    if (message.size() == 3 && (message[0] == 0x90 || message[0] == 0xB0)) {
+    if (const_message.size() == 3 && (const_message[0] == 0x90 || const_message[0] == 0xB0)) {
+        auto message = const_message;
+        if (message[0] == 0xB0)
+            message[0] = 0x90;
+        // LOG_TRACE("RX {} [{}]", message.size(), MessageToString(message));
+
         bool press    = message[2] != 0;
         uint8_t power = message[2];
         uint8_t pad   = message[1];

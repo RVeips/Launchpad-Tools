@@ -167,5 +167,8 @@
         "qjsonobject": "cpp",
         "qwebchannel": "cpp",
         "qcoreapplication": "cpp"
-    }
+    },
+    "Lua.diagnostics.globals": [
+        "gma"
+    ]
 }

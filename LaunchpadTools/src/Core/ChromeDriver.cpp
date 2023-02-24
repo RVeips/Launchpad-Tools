@@ -34,10 +34,10 @@ public:
         QUrl initiator    = job->initiator();
 
         if (method == GET) {
-            // auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
-            auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
-            auto fpath    = rootPath + url.toString().split(QChar{':'})[1];
-            QFile* file   = new QFile(fpath, job);
+            auto rootPath = QSL("X:/CFXS/Launchpad-Tools/LaunchpadTools/interface/");
+            // auto rootPath = QCoreApplication::applicationDirPath() + QSL("/ui/");
+            auto fpath  = rootPath + url.toString().split(QChar{':'})[1];
+            QFile* file = new QFile(fpath, job);
             if (file->open(QIODevice::ReadOnly)) {
                 if (fpath.contains(".htm"))
                     job->reply(QByteArrayLiteral("text/html"), file);

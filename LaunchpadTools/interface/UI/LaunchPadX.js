@@ -111,6 +111,7 @@ class LaunchPadX {
             <span id="set_mode_solid" class="lpx-mode-solid no-select" title="LED Mode Solid">S</span>
             <span id="set_mode_pulse" class="lpx-mode-pulse no-select" title="LED Mode Pulse">P</span>
             <span id="set_mode_flash" class="lpx-mode-flash no-select" title="LED Mode Flash">F</span>
+            <span id="midi_ch" class="lpx-midi-ch">__CH__</span>
             <div class="lpx-ind-on" id="onColor"></div>
             <div class="lpx-ind-off" id="offColor"></div>
             <div class="lpx-ind-active" id="indicator"></div>
@@ -191,7 +192,7 @@ class LaunchPadX {
                 <div id="lpx-pad-${i}" class="lpx-pad">
                     ${main_pad_content}
                 </div>
-            `))
+            `.replaceAll("__CH__", s_GridMap[i])))
             let pad = LaunchPadX.surface.querySelector(`#lpx-pad-${i}`)
             pad.dataset.midi_index = s_GridMap[i];
             LaunchPadX.IndexPadMap[s_GridMap[i]] = pad;
@@ -206,7 +207,7 @@ class LaunchPadX {
                 <div id="lpx-ch-${i}" class="lpx-pad">
                     ${control_pad_content}
                 </div>
-            `))
+                `.replaceAll("__CH__", s_HorizontalBarMap[i])))
             let hc = LaunchPadX.pads_h.querySelector(`#lpx-ch-${i}`)
             hc.dataset.midi_index = s_HorizontalBarMap[i];
             LaunchPadX.IndexPadMap[s_HorizontalBarMap[i]] = hc;
@@ -217,7 +218,7 @@ class LaunchPadX {
                 <div id="lpx-cv-${i}" class="lpx-pad">
                     ${control_pad_content}
                 </div>
-            `))
+                `.replaceAll("__CH__", s_VerticalBarMap[i])))
             let vc = LaunchPadX.pads_v.querySelector(`#lpx-cv-${i}`)
             vc.dataset.midi_index = s_VerticalBarMap[i];
             LaunchPadX.IndexPadMap[s_VerticalBarMap[i]] = vc;
